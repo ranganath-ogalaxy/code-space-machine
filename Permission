@@ -1,0 +1,12 @@
+chown owner tmpfile  					[Change owner of a file]
+chown :group tmpfile					[Change group of a file]
+chown owner:group tmpfile				[Change both owner and the group]
+chown -h owner:group tmpfile_symlnk			[To forcefully change the owner/group of symbolic file.]
+chown --reference=file tmpfile				[Copy the owner/group settings from one file to another]
+
+useradd -u 1000 -g 500 <username>			[Create a User with Specific Group ID]
+useradd -G {group-name} username			[Add a new user to secondary group]
+useradd -G admins,webadmin,developers <username>	[Add a User to Multiple Groups]
+useradd -M <username>					[Add a User without Home Directory]
+
+usermod -a -G {Existing-Group} <username>		[Add a existing user to existing group]
