@@ -21,3 +21,8 @@ twitterMetaTags.put("card",  TwitterElements.attr("card").);
 		twitterMetaTags.put("url",  TwitterElements.attr("url"));
 		twitterMetaTags.put("description",  TwitterElements.attr("description"));
 		twitterMetaTags.put("title",  TwitterElements.attr("title"));
+
+for(Element twitterElement : TwitterElements){
+				metaTags.append(twitterElement.toString()+"\n");
+				System.out.println(twitterElement.attr("name").split("twitter:")[1]+" "+twitterElement.attr("content"));
+			}
