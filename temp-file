@@ -14,7 +14,22 @@ External Link preview
 <meta name="twitter:url" content="https://techcrunch.com/2016/08/05/food-startup-deliveroo-raises-275m-as-uber-eats-into-its-european-market/">
 <meta name="twitter:description" content="Deliveroo, a&nbsp;popular&nbsp;on-demand restaurant food delivery startup in Europe, has raised another $275 million in funding, a Series E investment that we have heard from sources values the company at…">
 <meta name="twitter:title" content="Food startup Deliveroo raises $275M as Uber eats into its European…">
-private String url;
+
+
+package com.web.scrapper;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+public class WebScrappingHelper {
+
+	private String url;
 	private String title;
 	private String description;;
 	private String image;
@@ -28,27 +43,26 @@ private String url;
 	
 	private Document doc = null;
 	
-	public HtmlParser(final String url){
+	public WebScrappingHelper(final String url){
 		this.url = url;
 		getWebDocumnet();
 	}
 	
 	private void getWebDocumnet(){
-		if(doc == null && !StringUtil.isEmptyOrNull(url)){
+		if(doc == null && url != null && !url.equals("")){
 			try {
 				doc = Jsoup.connect(url).userAgent("Mozilla").get();
 			} catch (Throwable t) {
-				Logger.error("Failed to get Document from given URL",t);
+				System.out.println(t.getMessage());
 			}
 		}
 	}
 	
-	public HtmlParser fetchAllMetaTags(){
+	public WebScrappingHelper fetchAllMetaTags(){
 		if(doc==null) return this;
 		ogMetaTags = fetchogMetaTags();
 		twitterMetaTags = fetchTwitterMetaTags();
 		selfScrapped = fetchSelfScrapped();
-		
 		this.title = getTitle();
 		this.description = getDescription();
 		this.image = getImageUrl();
@@ -120,8 +134,13 @@ private String url;
 	}
 	
 	public String getDescription(){
-		if(description != null) return description;
-		if(doc==null) return null;
+		if(description != null){
+			return description;
+		}
+		if(doc==null){
+			System.out.println("Document is null");
+			return null;
+		}
 		Element element = doc.head().select("meta[property^=og:description").first();
 		if(element==null){
 			element = doc.head().select("meta[name^=twitter:description").first();
@@ -132,9 +151,11 @@ private String url;
 			element = doc.head().select("meta[name=description").first();
 			if(element != null){
 				description = element.attr("content");
+			}else{
+//				element = doc.select("p").get(0).text();
+				description = doc.select("p").get(0).text();
 			}
 		}
-		
 		return description;
 	}
 	
@@ -179,23 +200,17 @@ private String url;
 			canonicalUrl = element.attr("href");
 			return canonicalUrl;
 		}
-		return null;
+		return canonicalUrl;
 	}
 
 	public String getType() {
 		if(type != null) return type;
 		if(doc==null) return null;
 		Element element = doc.head().select("meta[property^=og:type").first();
-		if(element==null){
-			element = doc.head().select("meta[name^=twitter:image:src").first();
-		}
 		if(element!=null){
 			type = element.attr("content");
-		}else{
-			element = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]").first();
-			if(element != null)
-				type = element.attr("src");
 		}
 		return type;
 	}
 	
+}
