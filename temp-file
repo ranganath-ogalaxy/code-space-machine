@@ -14,15 +14,188 @@ External Link preview
 <meta name="twitter:url" content="https://techcrunch.com/2016/08/05/food-startup-deliveroo-raises-275m-as-uber-eats-into-its-european-market/">
 <meta name="twitter:description" content="Deliveroo, a&nbsp;popular&nbsp;on-demand restaurant food delivery startup in Europe, has raised another $275 million in funding, a Series E investment that we have heard from sources values the company at…">
 <meta name="twitter:title" content="Food startup Deliveroo raises $275M as Uber eats into its European…">
-
-twitterMetaTags.put("card",  TwitterElements.attr("card").);
-		twitterMetaTags.put("image",  TwitterElements.attr("image:src"));
-		twitterMetaTags.put("site",  TwitterElements.attr("site"));
-		twitterMetaTags.put("url",  TwitterElements.attr("url"));
-		twitterMetaTags.put("description",  TwitterElements.attr("description"));
-		twitterMetaTags.put("title",  TwitterElements.attr("title"));
-
-for(Element twitterElement : TwitterElements){
-				metaTags.append(twitterElement.toString()+"\n");
-				System.out.println(twitterElement.attr("name").split("twitter:")[1]+" "+twitterElement.attr("content"));
+private String url;
+	private String title;
+	private String description;;
+	private String image;
+	private String site;
+	private String canonicalUrl;
+	private String type;
+	
+	Map<String,String> ogMetaTags = null;
+	Map<String,String> twitterMetaTags = null;
+	Map<String,String> selfScrapped = null;
+	
+	private Document doc = null;
+	
+	public HtmlParser(final String url){
+		this.url = url;
+		getWebDocumnet();
+	}
+	
+	private void getWebDocumnet(){
+		if(doc == null && !StringUtil.isEmptyOrNull(url)){
+			try {
+				doc = Jsoup.connect(url).userAgent("Mozilla").get();
+			} catch (Throwable t) {
+				Logger.error("Failed to get Document from given URL",t);
 			}
+		}
+	}
+	
+	public HtmlParser fetchAllMetaTags(){
+		if(doc==null) return this;
+		ogMetaTags = fetchogMetaTags();
+		twitterMetaTags = fetchTwitterMetaTags();
+		selfScrapped = fetchSelfScrapped();
+		
+		this.title = getTitle();
+		this.description = getDescription();
+		this.image = getImageUrl();
+		this.site = getSite();
+		this.canonicalUrl = getCanonicalURL();
+		this.type = getType();
+		return this;
+	}
+	
+	public Map<String,String> fetchogMetaTags(){
+		if(ogMetaTags == null){			
+			ogMetaTags = new HashMap<String,String>();
+		}
+		if(!ogMetaTags.isEmpty()){
+			return ogMetaTags;
+		}
+		if(doc==null) return Collections.emptyMap();
+		Elements ogElements = doc.head().select("meta[property^=og:");
+		for(Element ogElement : ogElements){
+			ogMetaTags.put(ogElement.attr("property").split("og:")[1],ogElement.attr("content"));
+		}
+		return ogMetaTags;
+	}
+	
+	public Map<String,String> fetchTwitterMetaTags(){
+		if(twitterMetaTags == null){			
+			twitterMetaTags = new HashMap<String,String>();
+		}
+		if(!twitterMetaTags.isEmpty()){
+			return twitterMetaTags;
+		}
+		if(doc==null) return Collections.emptyMap();
+		Elements twitterElements = doc.head().select("meta[name^=twitter:");
+		for(Element twitterElement : twitterElements){
+			twitterMetaTags.put(twitterElement.attr("name").split("twitter:")[1],twitterElement.attr("content"));
+		}
+		return twitterMetaTags;
+	}
+	
+	public Map<String,String> fetchSelfScrapped(){
+		if(selfScrapped == null){			
+			selfScrapped = new HashMap<String,String>();
+		}
+		if(!selfScrapped.isEmpty()){
+			return selfScrapped;
+		}
+		if(doc==null) return Collections.emptyMap();
+		selfScrapped.put("title", getTitle());
+		selfScrapped.put("description", getDescription());
+		selfScrapped.put("url", url);
+		selfScrapped.put("site", getSite());
+		selfScrapped.put("image", getImageUrl());
+		return selfScrapped;
+	}
+	
+	public String getTitle(){
+		if(title != null) return title;
+		if(doc==null) return null;
+		Element element = doc.head().select("meta[property^=og:title").first();
+		if(element==null){
+			element = doc.head().select("meta[name^=twitter:title").first();
+		}
+		if(element!=null){
+			title = element.attr("content");
+		}else{			
+			title = doc.title();
+		}
+		return title;
+	}
+	
+	public String getDescription(){
+		if(description != null) return description;
+		if(doc==null) return null;
+		Element element = doc.head().select("meta[property^=og:description").first();
+		if(element==null){
+			element = doc.head().select("meta[name^=twitter:description").first();
+		}
+		if(element!=null){
+			description = element.attr("content");
+		}else{
+			element = doc.head().select("meta[name=description").first();
+			if(element != null){
+				description = element.attr("content");
+			}
+		}
+		
+		return description;
+	}
+	
+	public String getImageUrl(){
+		if(image!=null) return image;
+		if(doc==null) return null;
+		Element element = doc.head().select("meta[property^=og:image").first();
+		if(element==null){
+			element = doc.head().select("meta[name^=twitter:image:src").first();
+		}
+		if(element!=null){
+			image = element.attr("content");
+		}else{
+			element = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]").first();
+			if(element != null)
+				image = element.attr("src");
+		}
+		return image;
+	}
+	
+	
+
+	public String getSite() {
+		if(site !=null) return site;
+		if(doc==null) return null;
+		Element element = doc.head().select("meta[property^=og:site").first();
+		if(element==null){
+			element = doc.head().select("meta[name^=twitter:site").first();
+		}
+		if(element!=null){
+			site = element.attr("content");
+		}
+		return site;
+		
+	}
+	
+	public String getCanonicalURL(){
+		if(canonicalUrl!=null) return canonicalUrl;
+		if(doc==null) return null;
+		Element element = doc.head().select("link[rel=canonical]").first();
+		if(element != null){
+			canonicalUrl = element.attr("href");
+			return canonicalUrl;
+		}
+		return null;
+	}
+
+	public String getType() {
+		if(type != null) return type;
+		if(doc==null) return null;
+		Element element = doc.head().select("meta[property^=og:type").first();
+		if(element==null){
+			element = doc.head().select("meta[name^=twitter:image:src").first();
+		}
+		if(element!=null){
+			type = element.attr("content");
+		}else{
+			element = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]").first();
+			if(element != null)
+				type = element.attr("src");
+		}
+		return type;
+	}
+	
