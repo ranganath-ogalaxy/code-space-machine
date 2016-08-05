@@ -15,3 +15,9 @@ External Link preview
 <meta name="twitter:description" content="Deliveroo, a&nbsp;popular&nbsp;on-demand restaurant food delivery startup in Europe, has raised another $275 million in funding, a Series E investment that we have heard from sources values the company at…">
 <meta name="twitter:title" content="Food startup Deliveroo raises $275M as Uber eats into its European…">
 
+twitterMetaTags.put("card",  TwitterElements.attr("card").);
+		twitterMetaTags.put("image",  TwitterElements.attr("image:src"));
+		twitterMetaTags.put("site",  TwitterElements.attr("site"));
+		twitterMetaTags.put("url",  TwitterElements.attr("url"));
+		twitterMetaTags.put("description",  TwitterElements.attr("description"));
+		twitterMetaTags.put("title",  TwitterElements.attr("title"));
