@@ -1,4 +1,12 @@
-External Link preview
+URL url = new URL(helper.getImageUrl());
+HttpURLConnection connection = (HttpURLConnection)  url.openConnection();
+connection.setRequestMethod("HEAD");
+connection.connect();
+String contentType = connection.getContentType();
+			
+			
+(External Link preview)
+________________________
 
 
 <meta property="og:site_name" content="TechCrunch">
